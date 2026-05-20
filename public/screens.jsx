@@ -30,7 +30,7 @@ const ScreenIntro = ({ go, step = 0, setStep }) => {
       <div className="topbar">
         <div style={{ width: 40 }} />
         <KarinthiLogo size={20} />
-        <div className="back" style={{ cursor: "pointer", fontSize: 12, padding: "0 14px", width: "auto" }} onClick={() => go("signup")}>Passer</div>
+        <div className="back" style={{ cursor: "pointer", fontSize: 12, padding: "0 14px", width: "auto" }} onClick={() => go("diagPrompt")}>Passer</div>
       </div>
       <div className="intro-stage fade-in" key={step}>
         <div className="intro-art">
@@ -50,12 +50,15 @@ const ScreenIntro = ({ go, step = 0, setStep }) => {
             {slides.map((_, i) => <span key={i} className={`intro-dot ${i === step ? "active" : ""}`} />)}
           </div>
           <div style={{ display: "flex", gap: 10 }}>
-            <button className="btn btn-primary btn-block" onClick={() => isLast ? go("signup") : setStep(step + 1)}>
-              {isLast ? "Créer mon compte" : "Continuer"}
+            <button className="btn btn-primary btn-block" onClick={() => isLast ? go("diagPrompt") : setStep(step + 1)}>
+              {isLast ? "Faire mon diagnostic" : "Continuer"}
             </button>
           </div>
           {isLast && (
-            <button className="btn btn-link" style={{ marginTop: 14, width: "100%" }} onClick={() => go("signin")}>J'ai déjà un compte</button>
+            <div style={{ display: "grid", gap: 6, marginTop: 14, textAlign: "center" }}>
+              <button className="btn btn-link" style={{ width: "100%" }} onClick={() => go("signup")}>Créer un compte pour sauvegarder mes recommandations</button>
+              <button className="btn btn-link" style={{ width: "100%" }} onClick={() => go("signin")}>J'ai déjà un compte</button>
+            </div>
           )}
         </div>
       </div>
@@ -131,7 +134,7 @@ const ScreenMagic = ({ go, ctx }) => (
         <p className="muted" style={{ fontSize: 13.5, lineHeight: 1.5, marginTop: 0, marginBottom: 22 }}>
           Nous avons envoyé un lien à <strong style={{ color: "var(--ink)" }}>{ctx?.email || "vous@exemple.fr"}</strong>. Cliquez dessus pour valider votre identité.
         </p>
-        <button className="btn btn-primary btn-block" onClick={() => go("diagPrompt", ctx)}>Simuler le clic sur le lien</button>
+        <button className="btn btn-primary btn-block" onClick={() => go("diagPrompt", { ...ctx, fromAuth: true })}>Simuler le clic sur le lien</button>
         <button className="btn btn-link" style={{ marginTop: 18, alignSelf: "center" }}>Renvoyer le lien</button>
       </div>
     </div>
@@ -140,7 +143,7 @@ const ScreenMagic = ({ go, ctx }) => (
 
 const ScreenDiagPrompt = ({ go, ctx }) => (
   <>
-    <TopBar onBack={() => go("magic", ctx)} />
+    <TopBar onBack={() => go(ctx?.fromAuth ? "magic" : "intro", ctx)} />
     <div className="phone-scroll" style={{ position: "static", flex: 1 }}>
       <div style={{ padding: "0 var(--pad) 24px" }}>
         <div className="intro-art" style={{ height: 240, marginBottom: 22 }}>
