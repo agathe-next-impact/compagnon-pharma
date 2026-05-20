@@ -17,6 +17,7 @@
   },
   "dependencies": {
     "@payloadcms/db-postgres": "^3.69.0",
+    "@payloadcms/drizzle": "3.84.1",
     "@payloadcms/next": "^3.69.0",
     "@payloadcms/richtext-lexical": "^3.69.0",
     "cross-env": "^7.0.3",

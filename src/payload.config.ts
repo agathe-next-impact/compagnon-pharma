@@ -11,7 +11,7 @@ import { Diagnostics } from './collections/Diagnostics'
 import { Routines } from './collections/Routines'
 import { Products } from './collections/Products'
 import { Events } from './collections/Events'
-import { seedAdminUser } from './seed'
+import { ensureSchema, seedAdminUser } from './seed'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -44,8 +44,10 @@ export default buildConfig({
   graphQL: {
     schemaOutputFile: path.resolve(dirname, 'generated-schema.graphql'),
   },
-  // Seed l'utilisateur admin une fois la DB prête.
+  // Au boot : pousse le schéma vers Postgres (no-op si déjà à jour), puis
+  // seed l'utilisateur admin si ADMIN_EMAIL/PASSWORD sont fournis.
   onInit: async (payload) => {
+    await ensureSchema(payload)
     await seedAdminUser(payload)
   },
 })
