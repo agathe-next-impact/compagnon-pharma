@@ -27,6 +27,13 @@
       "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }]
     },
     {
+      "name": "Conseils peau",
+      "short_name": "Conseils",
+      "description": "Conseils détaillés par type de peau",
+      "url": "./index.html?route=advice",
+      "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }]
+    },
+    {
       "name": "Ma carte",
       "short_name": "Carte",
       "description": "Afficher la carte de fidélité",

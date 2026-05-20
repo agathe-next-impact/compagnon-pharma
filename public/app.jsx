@@ -4,7 +4,7 @@ const { useState: aS, useEffect: aE } = React;
 const TabRoot = ["home", "catalog", "card", "events", "profile"];
 
 const VALID_ROUTES = new Set([
-  "intro", "signup", "magic", "diagPrompt", "diag", "synth",
+  "intro", "signup", "magic", "diagPrompt", "diag", "synth", "advice",
   "home", "catalog", "product", "routine", "card", "events", "profile"
 ]);
 
@@ -57,6 +57,7 @@ function App() {
     case "diagPrompt": screen = <ScreenDiagPrompt go={go} ctx={route.ctx} />; break;
     case "diag": screen = <ScreenDiagnostic go={go} ctx={route.ctx} setCtx={setCtx} />; break;
     case "synth": screen = <ScreenSynthesis go={go} ctx={route.ctx} profile={profile} />; break;
+    case "advice": screen = <ScreenAdvice go={go} ctx={route.ctx} profile={profile} />; break;
     case "home": screen = <ScreenHome go={go} ctx={route.ctx} profile={profile} nav={(t) => go(t, route.ctx)} />; break;
     case "catalog": screen = <ScreenCatalog go={go} ctx={route.ctx} profile={profile} />; break;
     case "product": screen = <ScreenProduct go={go} ctx={route.ctx} profile={profile} toast={toast} />; break;
@@ -170,6 +171,7 @@ function App() {
               ["signup", "Inscription"],
               ["diagPrompt", "Diagnostic"],
               ["synth", "Synthèse"],
+              ["advice", "Conseils détaillés"],
               ["home", "Accueil"],
               ["catalog", "Catalogue"],
               ["product", "Fiche produit"],

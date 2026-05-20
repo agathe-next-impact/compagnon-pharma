@@ -358,8 +358,8 @@ const ScreenSynthesis = ({ go, ctx, profile }) => {
         </div>
       </div>
       <div className="bottom-cta" style={{ flexDirection: "column" }}>
-        <button className="btn btn-primary btn-block" onClick={() => go("home", ctx)}>Voir mon espace</button>
-        <button className="btn btn-link" style={{ marginTop: 10 }} onClick={() => go("routine", ctx)}>Voir la routine détaillée</button>
+        <button className="btn btn-primary btn-block" onClick={() => go("advice", { ...ctx, from: "synth" })}>Voir mes conseils détaillés</button>
+        <button className="btn btn-link" style={{ marginTop: 10 }} onClick={() => go("home", ctx)}>Aller à mon espace</button>
       </div>
     </>
   );
@@ -430,6 +430,24 @@ const ScreenHome = ({ go, profile, ctx, nav }) => {
               <div className="msg">"Avec les pollens élevés, pensez au sérum apaisant — j'en ai mis de côté."</div>
             </div>
             <Icon name="chev-r" size={18} color="rgba(251,248,242,0.6)" />
+          </div>
+        </div>
+
+        <div className="section-head"><h3 className="h-section">Vos conseils peau</h3><span className="more" onClick={() => go("advice", { ...ctx, from: "home" })}>Tout lire</span></div>
+        <div style={{ padding: "0 var(--pad)" }}>
+          <div className="card" style={{ cursor: "pointer" }} onClick={() => go("advice", { ...ctx, from: "home" })}>
+            <div className="label">Profil identifié</div>
+            <div style={{ fontFamily: "Roboto", fontWeight: 500, fontSize: 22, letterSpacing: 0, margin: "4px 0 8px", color: "var(--primary)" }}>
+              {skin?.name || "Mixte"}{isPregnant ? " · grossesse" : ""}
+            </div>
+            <p className="muted" style={{ fontSize: 13, lineHeight: 1.5, margin: 0 }}>
+              {(window.PHARMA_DATA.SKIN_ADVICE[profile?.skinType || "mixte"]?.tagline) || "Rituels, ingrédients à privilégier ou éviter, et produits adaptés à votre profil."}
+            </p>
+            <div className="divider" />
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+              <span style={{ fontSize: 12, color: "var(--muted)" }}>6 rituels · ingrédients · produits</span>
+              <Icon name="chev-r" size={16} color="var(--muted)" />
+            </div>
           </div>
         </div>
 
@@ -810,7 +828,7 @@ const ScreenProfile = ({ go, ctx, profile }) => {
           </div>
         </div>
 
-        <div className="section-head"><h3 className="h-section">Profil cosmétique</h3><span className="more" onClick={() => go("diag", ctx)}>Refaire</span></div>
+        <div className="section-head"><h3 className="h-section">Profil cosmétique</h3><span className="more" onClick={() => go("advice", { ...ctx, from: "profile" })}>Conseils détaillés</span></div>
         <div style={{ padding: "0 var(--pad)" }}>
           <div className="card">
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
@@ -820,6 +838,11 @@ const ScreenProfile = ({ go, ctx, profile }) => {
                   <div style={{ fontFamily: "Roboto", fontWeight: 500, fontSize: 18, marginTop: 4, letterSpacing: 0, color: "var(--primary)" }}>{v}</div>
                 </div>
               ))}
+            </div>
+            <div className="divider" />
+            <div style={{ display: "flex", gap: 8 }}>
+              <button className="btn btn-ghost btn-sm" style={{ flex: 1 }} onClick={() => go("advice", { ...ctx, from: "profile" })}>Voir mes conseils</button>
+              <button className="btn btn-ghost btn-sm" style={{ flex: 1 }} onClick={() => go("diag", ctx)}>Refaire le diagnostic</button>
             </div>
             <div className="divider" />
             <div className="callout" style={{ background: "transparent", border: "none", padding: 0 }}>
@@ -869,7 +892,205 @@ const ScreenProfile = ({ go, ctx, profile }) => {
   );
 };
 
+// ───── Conseils détaillés par profil ────────────────────────
+// Une page riche par type de peau (sec, mixte, grasse, normale, sensible)
+// avec surimpression d'un encart "moment de vie" (grossesse, post-partum,
+// ménopause) si pertinent. Toujours accessible, sans inscription.
+const ScreenAdvice = ({ go, ctx, profile }) => {
+  const skinId = ctx?.skinId || profile?.skinType || "mixte";
+  const lifeId = ctx?.lifeId || profile?.lifeMoment || "none";
+  const skinTypes = window.PHARMA_DATA.SKIN_TYPES;
+  const advice = window.PHARMA_DATA.SKIN_ADVICE[skinId] || window.PHARMA_DATA.SKIN_ADVICE.mixte;
+  const life = window.PHARMA_DATA.LIFE_ADVICE[lifeId];
+  const products = (advice.productIds || [])
+    .map(id => window.PHARMA_DATA.PRODUCTS.find(p => p.id === id))
+    .filter(Boolean);
+
+  return (
+    <>
+      <TopBar
+        title="Conseils peau"
+        onBack={() => go(ctx?.from || "synth", ctx)}
+        right={<div onClick={() => go("diag", ctx)} style={{ fontSize: 12, color: "var(--muted)", cursor: "pointer" }}>Refaire</div>}
+      />
+      <div className="phone-scroll" style={{ position: "static", flex: 1 }}>
+        <div style={{ padding: "8px var(--pad) 32px" }}>
+          {/* Sélecteur de profil — l'utilisateur peut explorer les autres types */}
+          <div className="cat-rail" style={{ paddingLeft: 0, paddingRight: 0, margin: "0 0 18px" }}>
+            {skinTypes.map(s => (
+              <span
+                key={s.id}
+                className={`cat-chip ${s.id === skinId ? "active" : ""}`}
+                onClick={() => go("advice", { ...ctx, skinId: s.id })}
+              >{s.name}</span>
+            ))}
+          </div>
+
+          <div className="label">Profil détaillé</div>
+          <h1 className="h-display" style={{ fontSize: 32, margin: "8px 0 6px" }}>
+            <em>{advice.title}.</em>
+          </h1>
+          <p style={{ fontSize: 15, fontWeight: 500, color: "var(--ink)", margin: "0 0 10px" }}>{advice.tagline}</p>
+          <p className="muted" style={{ fontSize: 13.5, lineHeight: 1.55, marginTop: 0 }}>{advice.summary}</p>
+
+          {/* Indicateurs */}
+          <div className="card" style={{ marginTop: 18, marginBottom: 22 }}>
+            <div className="label" style={{ marginBottom: 10 }}>Indicateurs clés</div>
+            <div className="synth-bars">
+              {Object.entries(advice.bars).map(([name, v]) => (
+                <div key={name} className="bar">
+                  <span className="name">{name}</span>
+                  <div className="track"><span className="fill" style={{ width: `${Math.round(v * 100)}%` }} /></div>
+                  <span className="val">{Math.round(v * 100)}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Rituels */}
+          <div className="section-head" style={{ padding: 0, marginBottom: 10 }}>
+            <h3 className="h-section" style={{ fontSize: 20 }}>Rituels recommandés</h3>
+          </div>
+          <div style={{ display: "grid", gap: 10, marginBottom: 22 }}>
+            {advice.rituals.map((r, i) => (
+              <div key={i} className="card-flat" style={{ display: "grid", gridTemplateColumns: "auto 1fr", gap: 12 }}>
+                <div style={{ display: "grid", gap: 4, alignContent: "start" }}>
+                  <div style={{ fontSize: 10, letterSpacing: "0.14em", textTransform: "uppercase", color: "var(--muted)" }}>{r.phase}</div>
+                  <div style={{ fontFamily: "Roboto", fontWeight: 700, color: "var(--primary)", fontSize: 18 }}>{String(i + 1).padStart(2, "0")}</div>
+                </div>
+                <div>
+                  <div style={{ fontWeight: 600, fontSize: 14 }}>{r.title}</div>
+                  <div style={{ fontSize: 13, color: "var(--ink-2)", lineHeight: 1.5, marginTop: 4 }}>{r.body}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Ingrédients */}
+          <div className="section-head" style={{ padding: 0, marginBottom: 10 }}>
+            <h3 className="h-section" style={{ fontSize: 20 }}>Ingrédients</h3>
+          </div>
+          <div style={{ display: "grid", gap: 10, marginBottom: 22 }}>
+            <div className="card">
+              <div className="label" style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                <Icon name="check" size={14} color="var(--sage)" /> À privilégier
+              </div>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 10 }}>
+                {advice.seek.map(s => (
+                  <span key={s} className="pill" style={{ background: "rgba(93,118,75,0.10)", color: "var(--sage)", borderColor: "rgba(93,118,75,0.25)" }}>{s}</span>
+                ))}
+              </div>
+            </div>
+            <div className="card">
+              <div className="label" style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                <Icon name="info" size={14} color="var(--warn)" /> À éviter
+              </div>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 10 }}>
+                {advice.avoid.map(s => (
+                  <span key={s} className="pill" style={{ background: "rgba(181,138,71,0.10)", color: "var(--warn)", borderColor: "rgba(181,138,71,0.25)" }}>{s}</span>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Quote pharmacien */}
+          <div className="pharmacist" style={{ marginBottom: 22 }}>
+            <div className="avatar">L</div>
+            <div style={{ flex: 1 }}>
+              <div className="who">Léa, votre pharmacienne</div>
+              <div className="msg">{advice.pharmacist}</div>
+            </div>
+          </div>
+
+          {/* Surimpression moment de vie */}
+          {life && (
+            <>
+              <div className="section-head" style={{ padding: 0, marginBottom: 10 }}>
+                <h3 className="h-section" style={{ fontSize: 20 }}>Moment de vie · {life.title}</h3>
+              </div>
+              <div className="card" style={{ marginBottom: 22, borderColor: "rgba(168,69,58,0.20)" }}>
+                <p style={{ fontSize: 14, fontWeight: 500, color: "var(--ink)", margin: 0 }}>{life.tagline}</p>
+                <p className="muted" style={{ fontSize: 13, lineHeight: 1.55, margin: "8px 0 14px" }}>{life.summary}</p>
+
+                <div className="label" style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 6 }}>
+                  <Icon name="info" size={14} color="var(--warn)" /> À éviter pendant cette période
+                </div>
+                <ul style={{ margin: "8px 0 14px 18px", padding: 0, fontSize: 13, lineHeight: 1.55, color: "var(--ink-2)" }}>
+                  {life.avoid.map(a => <li key={a} style={{ marginBottom: 4 }}>{a}</li>)}
+                </ul>
+
+                <div className="label" style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                  <Icon name="check" size={14} color="var(--sage)" /> À privilégier
+                </div>
+                <ul style={{ margin: "8px 0 14px 18px", padding: 0, fontSize: 13, lineHeight: 1.55, color: "var(--ink-2)" }}>
+                  {life.seek.map(a => <li key={a} style={{ marginBottom: 4 }}>{a}</li>)}
+                </ul>
+
+                <div className="divider" />
+                <div className="callout" style={{ background: "transparent", border: "none", padding: 0 }}>
+                  <div className="ic" style={{ background: "var(--paper)" }}><Icon name="info" size={16} color="var(--primary)" /></div>
+                  <div>
+                    <div className="title">Note du pharmacien</div>
+                    <div className="body">{life.note}</div>
+                  </div>
+                </div>
+              </div>
+            </>
+          )}
+
+          {/* Sélecteur de moment de vie — si on n'en a pas sélectionné, on propose */}
+          {!life && (
+            <div className="card" style={{ marginBottom: 22 }}>
+              <div className="label">Vous traversez un moment particulier ?</div>
+              <p className="muted" style={{ fontSize: 13, lineHeight: 1.5, margin: "6px 0 12px" }}>
+                Les conseils s'adaptent à la grossesse, au post-partum ou à la ménopause.
+              </p>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                {["grossesse", "postpartum", "menopause"].map(id => (
+                  <span
+                    key={id}
+                    className="cat-chip"
+                    onClick={() => go("advice", { ...ctx, lifeId: id })}
+                  >{window.PHARMA_DATA.LIFE_ADVICE[id].title}</span>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Produits adaptés */}
+          {products.length > 0 && (
+            <>
+              <div className="section-head" style={{ padding: 0, marginBottom: 10 }}>
+                <h3 className="h-section" style={{ fontSize: 20 }}>Produits adaptés à ce profil</h3>
+              </div>
+              <p className="muted" style={{ fontSize: 13, marginTop: 0, marginBottom: 14 }}>Sélection du catalogue Karinthi, classée par pertinence.</p>
+              <div style={{ display: "grid", gap: 10 }}>
+                {products.map((p, i) => (
+                  <div key={p.id} className="card-flat" style={{ display: "grid", gridTemplateColumns: "60px 1fr auto", gap: 12, alignItems: "center", cursor: "pointer" }} onClick={() => go("product", { ...ctx, productId: p.id, from: "advice" })}>
+                    <div style={{ width: 60, height: 60, borderRadius: 10, background: "var(--primary-container)", display: "grid", placeItems: "center", fontFamily: "Roboto", fontWeight: 700, color: "var(--primary)", fontSize: 18 }}>{i + 1}</div>
+                    <div>
+                      <div style={{ fontSize: 11, letterSpacing: "0.14em", textTransform: "uppercase", color: "var(--muted)" }}>{p.brand}</div>
+                      <div style={{ fontSize: 14, fontWeight: 600, marginTop: 2, lineHeight: 1.25 }}>{p.name}</div>
+                      <div style={{ fontSize: 12, color: "var(--muted)", marginTop: 4 }}>{p.size} · {p.price} €</div>
+                    </div>
+                    <Icon name="chev-r" size={16} color="var(--muted)" />
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
+        </div>
+      </div>
+      <div className="bottom-cta" style={{ flexDirection: "column" }}>
+        <button className="btn btn-primary btn-block" onClick={() => go("catalog", ctx)}>Explorer le catalogue</button>
+        <button className="btn btn-link" style={{ marginTop: 10 }} onClick={() => go("routine", ctx)}>Voir la routine détaillée</button>
+      </div>
+    </>
+  );
+};
+
 Object.assign(window, {
   ScreenIntro, ScreenSignup, ScreenMagic, ScreenDiagPrompt, ScreenDiagnostic, ScreenSynthesis,
-  ScreenHome, ScreenCatalog, ScreenProduct, ScreenRoutine, ScreenCard, ScreenEvents, ScreenProfile
+  ScreenHome, ScreenCatalog, ScreenProduct, ScreenRoutine, ScreenCard, ScreenEvents, ScreenProfile,
+  ScreenAdvice
 });
