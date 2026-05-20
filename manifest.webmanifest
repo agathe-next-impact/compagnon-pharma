@@ -1,0 +1,44 @@
+{
+  "name": "Karinthi · Compagnon Parapharmacie",
+  "short_name": "Karinthi",
+  "description": "Compagnon parapharmacie Karinthi : diagnostic peau, recommandations personnalisées, carte de fidélité et événements en officine.",
+  "lang": "fr",
+  "dir": "ltr",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "display_override": ["standalone", "minimal-ui", "browser"],
+  "orientation": "portrait",
+  "background_color": "#FAFAF7",
+  "theme_color": "#0C3D52",
+  "categories": ["health", "lifestyle", "shopping", "medical"],
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-192-maskable.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable" },
+    { "src": "icons/icon-512-maskable.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    {
+      "name": "Diagnostic peau",
+      "short_name": "Diagnostic",
+      "description": "Lancer le diagnostic peau personnalisé",
+      "url": "./index.html?route=diagPrompt",
+      "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Ma carte",
+      "short_name": "Carte",
+      "description": "Afficher la carte de fidélité",
+      "url": "./index.html?route=card",
+      "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Catalogue",
+      "short_name": "Catalogue",
+      "description": "Explorer le catalogue produits",
+      "url": "./index.html?route=catalog",
+      "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }]
+    }
+  ]
+}

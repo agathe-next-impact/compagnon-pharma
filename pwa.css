@@ -1,0 +1,120 @@
+/* ── Karinthi PWA · ajustements installé / mobile / install banner ─────────── */
+
+/* Safe area pour iOS quand on est en mode standalone */
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  padding: 0;
+  background: var(--canvas-bg);
+}
+
+/* Empêche le pull-to-refresh sur Chrome Android quand on est en standalone */
+@media all and (display-mode: standalone) {
+  html, body { overscroll-behavior: none; }
+  body { background: var(--paper-bg); }
+
+  /* En mode app : on masque les panneaux latéraux et on fait remplir le téléphone */
+  .app-shell {
+    grid-template-columns: 1fr !important;
+    background: var(--paper-bg) !important;
+    padding: 0 !important;
+    align-items: stretch !important;
+  }
+  .shell-side { display: none !important; }
+
+  .phone {
+    width: 100% !important;
+    height: 100vh !important;
+    height: 100dvh !important;
+    max-height: none !important;
+    border-radius: 0 !important;
+    border: 0 !important;
+    box-shadow: none !important;
+    justify-self: stretch;
+  }
+  .phone-status {
+    padding-top: env(safe-area-inset-top, 0) !important;
+    height: calc(32px + env(safe-area-inset-top, 0)) !important;
+    flex-basis: calc(32px + env(safe-area-inset-top, 0)) !important;
+  }
+  .tabbar {
+    padding-bottom: env(safe-area-inset-bottom, 0) !important;
+  }
+
+  /* Panneau Tweaks invisible en standalone — c'est un outil de prototypage */
+  .twk-panel { display: none !important; }
+}
+
+/* Idem pour les petits écrans en navigateur classique : on remplit l'écran */
+@media (max-width: 700px) {
+  .app-shell { padding: 0 !important; }
+  .phone {
+    width: 100% !important;
+    height: 100vh !important;
+    height: 100dvh !important;
+    max-height: none !important;
+    border-radius: 0 !important;
+    border: 0 !important;
+    box-shadow: none !important;
+  }
+  .phone-status {
+    padding-top: env(safe-area-inset-top, 0) !important;
+    height: calc(32px + env(safe-area-inset-top, 0)) !important;
+    flex-basis: calc(32px + env(safe-area-inset-top, 0)) !important;
+  }
+  .tabbar { padding-bottom: env(safe-area-inset-bottom, 0) !important; }
+}
+
+/* ── Bannière install / mise à jour ───────────────────────────────────────── */
+.pwa-banner {
+  position: fixed;
+  left: 50%;
+  bottom: max(16px, env(safe-area-inset-bottom, 16px));
+  transform: translateX(-50%);
+  z-index: 2147483645;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  max-width: 92vw;
+  padding: 10px 10px 10px 16px;
+  background: #0C3D52;
+  color: #F4F6E6;
+  border-radius: 999px;
+  box-shadow: 0 12px 32px rgba(12,61,82,0.32);
+  font: 13px/1.3 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  animation: pwaSlide 280ms cubic-bezier(.2,.7,.3,1) both;
+}
+.pwa-banner[hidden] { display: none !important; }
+.pwa-banner-msg { flex: 1; min-width: 0; }
+.pwa-banner-btn {
+  appearance: none;
+  border: 0;
+  background: #ACB75E;
+  color: #0C3D52;
+  font-weight: 600;
+  font-family: inherit;
+  font-size: 13px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.pwa-banner-btn:hover { background: #CDD78F; }
+.pwa-banner-x {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  color: rgba(244,246,230,0.7);
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 18px;
+  line-height: 1;
+}
+.pwa-banner-x:hover { background: rgba(255,255,255,0.08); color: #fff; }
+
+@keyframes pwaSlide {
+  from { opacity: 0; transform: translate(-50%, 16px); }
+  to   { opacity: 1; transform: translate(-50%, 0); }
+}

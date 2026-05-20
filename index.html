@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+<title>Karinthi · Compagnon Parapharmacie</title>
+<meta name="description" content="Karinthi · le compagnon parapharmacie : diagnostic peau, recommandations personnalisées, carte de fidélité et événements en officine.">
+
+<!-- PWA -->
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#0C3D52" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0C3D52" media="(prefers-color-scheme: dark)">
+<meta name="color-scheme" content="light">
+<meta name="application-name" content="Karinthi">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Karinthi">
+<meta name="format-detection" content="telephone=no">
+
+<!-- Icons -->
+<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="icons/favicon-16.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="mask-icon" href="icons/icon-512.png" color="#0C3D52">
+
+<!-- Open Graph -->
+<meta property="og:type" content="website">
+<meta property="og:title" content="Karinthi · Compagnon Parapharmacie">
+<meta property="og:description" content="Le rituel beauté retrouve son officine.">
+<meta property="og:image" content="icons/og-image.png">
+<meta property="og:locale" content="fr_FR">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Inter+Tight:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css?v=9">
+<link rel="stylesheet" href="pwa.css">
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+</head>
+<body>
+<div id="root"></div>
+
+<!-- Installation / mise à jour PWA -->
+<div id="pwa-banner" class="pwa-banner" hidden>
+  <span id="pwa-banner-msg" class="pwa-banner-msg"></span>
+  <button id="pwa-banner-action" class="pwa-banner-btn" type="button"></button>
+  <button id="pwa-banner-dismiss" class="pwa-banner-x" type="button" aria-label="Fermer">×</button>
+</div>
+
+<script>
+window.TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
+  "density": "compact",
+  "skinType": "normale",
+  "lifeMoment": "none",
+  "memberTier": "Membre"
+}/*EDITMODE-END*/;
+</script>
+
+<script type="text/babel" src="data.jsx"></script>
+<script type="text/babel" src="ui.jsx"></script>
+<script type="text/babel" src="screens.jsx"></script>
+<script type="text/babel" src="tweaks-panel.jsx"></script>
+<script type="text/babel" src="app.jsx"></script>
+
+<script>
+  // ─── Service worker registration ───────────────────────────────
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", () => {
+      navigator.serviceWorker.register("service-worker.js", { scope: "./" })
+        .then((reg) => {
+          // Détection de mise à jour
+          reg.addEventListener("updatefound", () => {
+            const installing = reg.installing;
+            if (!installing) return;
+            installing.addEventListener("statechange", () => {
+              if (installing.state === "installed" && navigator.serviceWorker.controller) {
+                showBanner("Une nouvelle version est disponible.", "Actualiser", () => {
+                  installing.postMessage("SKIP_WAITING");
+                });
+              }
+            });
+          });
+        })
+        .catch((err) => console.warn("SW registration failed:", err));
+
+      // Recharger après prise de contrôle d'un nouveau SW
+      let refreshing = false;
+      navigator.serviceWorker.addEventListener("controllerchange", () => {
+        if (refreshing) return;
+        refreshing = true;
+        window.location.reload();
+      });
+    });
+  }
+
+  // ─── Invitation d'installation (Android / Chromium) ──────────
+  let deferredInstall = null;
+  window.addEventListener("beforeinstallprompt", (e) => {
+    e.preventDefault();
+    deferredInstall = e;
+    if (sessionStorage.getItem("pwa-install-dismissed") === "1") return;
+    showBanner("Installer Karinthi sur votre appareil ?", "Installer", async () => {
+      if (!deferredInstall) return;
+      deferredInstall.prompt();
+      try { await deferredInstall.userChoice; } catch (_) {}
+      deferredInstall = null;
+      hideBanner();
+    });
+  });
+
+  window.addEventListener("appinstalled", () => {
+    deferredInstall = null;
+    hideBanner();
+  });
+
+  function showBanner(msg, actionLabel, onAction) {
+    const el = document.getElementById("pwa-banner");
+    const m  = document.getElementById("pwa-banner-msg");
+    const b  = document.getElementById("pwa-banner-action");
+    const x  = document.getElementById("pwa-banner-dismiss");
+    if (!el || !m || !b || !x) return;
+    m.textContent = msg;
+    b.textContent = actionLabel;
+    b.onclick = onAction;
+    x.onclick = () => {
+      sessionStorage.setItem("pwa-install-dismissed", "1");
+      hideBanner();
+    };
+    el.hidden = false;
+  }
+  function hideBanner() {
+    const el = document.getElementById("pwa-banner");
+    if (el) el.hidden = true;
+  }
+</script>
+</body>
+</html>
