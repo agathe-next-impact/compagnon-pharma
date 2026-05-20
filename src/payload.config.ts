@@ -11,7 +11,8 @@ import { Diagnostics } from './collections/Diagnostics'
 import { Routines } from './collections/Routines'
 import { Products } from './collections/Products'
 import { Events } from './collections/Events'
-import { ensureSchema, seedAdminUser } from './seed'
+import { migrations } from './migrations'
+import { seedAdminUser } from './seed'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -31,11 +32,13 @@ export default buildConfig({
   cors: [process.env.NEXT_PUBLIC_SERVER_URL || '*'].filter(Boolean),
   csrf: [process.env.NEXT_PUBLIC_SERVER_URL || ''].filter(Boolean),
   db: postgresAdapter({
-    pool: {
-      connectionString: process.env.DATABASE_URL || '',
-    },
-    // Crée automatiquement le schéma au boot — pratique pour Neon + Vercel.
+    pool: { connectionString: process.env.DATABASE_URL || '' },
+    // En dev, sync direct du schéma. En prod, on s'appuie sur les migrations
+    // versionnées dans src/migrations/ et exécutées automatiquement par
+    // l'adapter au boot (cf. prodMigrations).
     push: true,
+    prodMigrations: migrations,
+    migrationDir: path.resolve(dirname, 'migrations'),
   }),
   sharp,
   typescript: {
@@ -44,10 +47,8 @@ export default buildConfig({
   graphQL: {
     schemaOutputFile: path.resolve(dirname, 'generated-schema.graphql'),
   },
-  // Au boot : pousse le schéma vers Postgres (no-op si déjà à jour), puis
-  // seed l'utilisateur admin si ADMIN_EMAIL/PASSWORD sont fournis.
+  // Seed l'admin si ADMIN_EMAIL/PASSWORD sont définis et la table users existe.
   onInit: async (payload) => {
-    await ensureSchema(payload)
     await seedAdminUser(payload)
   },
 })
